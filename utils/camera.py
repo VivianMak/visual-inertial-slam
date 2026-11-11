@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+"""Connect to the camera via USB"""
+
 import cv2
 import depthai as dai
 
 # Create pipeline
 device = dai.Device()
 with dai.Pipeline(device) as pipeline:
+
+    # print(device.getUsbSpeed()) -> SUPER
 
     outputQueues = {}
     sockets = device.getConnectedCameras()
