@@ -1,2 +1,4 @@
 # Testing python code
 .venv
+
+build/
