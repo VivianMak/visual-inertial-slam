@@ -16,3 +16,4 @@ target_link_libraries(camera_raw PRIVATE depthai::core ${OpenCV_LIBS})
 
 add_executable(record utils/record/record.cpp)
 target_link_libraries(record PRIVATE depthai::core ${OpenCV_LIBS})
+target_compile_definitions(record PRIVATE PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
