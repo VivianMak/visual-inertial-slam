@@ -13,3 +13,6 @@ target_link_libraries(camera PRIVATE depthai::core ${OpenCV_LIBS})
 
 add_executable(camera_raw utils/camera_raw.cpp)
 target_link_libraries(camera_raw PRIVATE depthai::core ${OpenCV_LIBS})
+
+add_executable(record utils/record/record.cpp)
+target_link_libraries(record PRIVATE depthai::core ${OpenCV_LIBS})
