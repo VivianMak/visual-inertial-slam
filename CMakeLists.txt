@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.20)
 project(visual_inertial_slam CXX)
 
@@ -13,3 +14,11 @@ target_link_libraries(camera PRIVATE depthai::core ${OpenCV_LIBS})
 
 add_executable(camera_raw utils/camera_raw.cpp)
 target_link_libraries(camera_raw PRIVATE depthai::core ${OpenCV_LIBS})
+
+# ORB feature matching
+find_package(OpenCV REQUIRED)
+
+add_executable(orb_video src/orb_video.cpp)
+target_compile_features(orb_video PRIVATE cxx_std_17)
+target_include_directories(orb_video PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(orb_video PRIVATE ${OpenCV_LIBS})
