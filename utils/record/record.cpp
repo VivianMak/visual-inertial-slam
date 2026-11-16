@@ -19,7 +19,7 @@ static std::string getDefaultRecordingPath() {
     auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::ostringstream name;
     name << "recording_" << std::put_time(std::localtime(&now), "%Y%m%d_%H%M%S");
-    return (std::filesystem::current_path() / name.str()).string();
+    return (std::filesystem::path(PROJECT_ROOT) / "data" / name.str()).string();
 }
 
 // Signal handling for clean shutdown
@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
 
     dai::RecordConfig config;
     config.outputDir = argc > 1 ? std::string(argv[1]) : getDefaultRecordingPath();
+    std::filesystem::create_directories(config.outputDir);  // depthai requires it to exist
     // config.videoEncoding.enabled = true;  // Use video encoding
     // config.videoEncoding.bitrate = 0;     // Automatic
     // config.videoEncoding.profile = dai::VideoEncoderProperties::Profile::H264_MAIN;
