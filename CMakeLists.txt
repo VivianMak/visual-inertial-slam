@@ -28,3 +28,9 @@ target_compile_definitions(record PRIVATE PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 
 add_executable(replay utils/record/replay.cpp)
 target_link_libraries(replay PRIVATE depthai::core ${OpenCV_LIBS})
+
+
+# SLAM/MAiN
+add_executable(slam src/main.cpp src/slam/slam.cpp)
+target_include_directories(slam PRIVATE include)
+target_link_libraries(slam PRIVATE depthai::core ${OpenCV_LIBS})

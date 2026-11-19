@@ -1,16 +1,18 @@
-#pragma once
+#include "slam.hpp"
 
-SLAM::SLAM():{}
+SLAM::SLAM() {}
 
 
-/* Initalize nodes from camera */
-void SLAM::init(){
+/* Initialize nodes from camera */
+void SLAM::init() {
 
 }
 
 
-
-
 /* Run loop */
-void SLAM::run()
-
+void SLAM::run() {
+    // read from node
+    // feature extract and mathc
+    // depth
+    // plot
+}
