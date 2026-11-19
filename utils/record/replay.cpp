@@ -36,28 +36,45 @@ int main(int argc, char** argv) {
     imu->setBatchReportThreshold(100);
 
     auto videoQueue = camOut->createOutputQueue();
-    auto q = imu->out.createOutputQueue();
+    auto imuQueue = imu->out.createOutputQueue();
+
+    // Build first so the replay nodes exist, then play the recording once instead of looping.
+    // When a replay node reaches the end of its file it stops the pipeline.
+    pipeline.build();
+    for(auto& node : pipeline.getAllNodes()) {
+        if(auto replay = std::dynamic_pointer_cast<dai::node::ReplayVideo>(node)) replay->setLoop(false);
+        if(auto replay = std::dynamic_pointer_cast<dai::node::ReplayMetadataOnly>(node)) replay->setLoop(false);
+    }
 
     pipeline.start();
 
-    while(pipeline.isRunning()) {
-        auto videoIn = videoQueue->get<dai::ImgFrame>();
-        auto imuData = q->get<dai::IMUData>();
+    try {
+        while(pipeline.isRunning()) {
+            // Drain each queue independently so neither stream waits on the other
+            for(auto& imuData : imuQueue->tryGetAll<dai::IMUData>()) {
+                if(!imuData) continue;
+                for(auto& imuPacket : imuData->packets) {
+                    auto& acceleroValues = imuPacket.acceleroMeter;
+                    auto& gyroValues = imuPacket.gyroscope;
 
-        cv::imshow("video", videoIn->getCvFrame());
+                    printf("Accelerometer [m/s^2]: x: %.3f y: %.3f z: %.3f \n", acceleroValues.x, acceleroValues.y, acceleroValues.z);
+                    printf("Gyroscope [rad/s]: x: %.3f y: %.3f z: %.3f \n", gyroValues.x, gyroValues.y, gyroValues.z);
+                }
+            }
 
-        for(auto& imuPacket : imuData->packets) {
-            auto& acceleroValues = imuPacket.acceleroMeter;
-            auto& gyroValues = imuPacket.gyroscope;
+            for(auto& videoIn : videoQueue->tryGetAll<dai::ImgFrame>()) {
+                if(!videoIn) continue;
+                cv::imshow("video", videoIn->getCvFrame());
+            }
 
-            printf("Accelerometer [m/s^2]: x: %.3f y: %.3f z: %.3f \n", acceleroValues.x, acceleroValues.y, acceleroValues.z);
-            printf("Gyroscope [rad/s]: x: %.3f y: %.3f z: %.3f \n", gyroValues.x, gyroValues.y, gyroValues.z);
+            if(cv::waitKey(1) == 'q') {
+                break;
+            }
         }
-
-        if(cv::waitKey(1) == 'q') {
-            break;
-        }
+    } catch(const dai::MessageQueue::QueueException&) {
+        // Queues close when the replay reaches the end of the recording
     }
 
+    std::cout << "Replay finished\n";
     pipeline.stop();
 }
