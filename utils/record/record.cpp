@@ -1,3 +1,5 @@
+// https://docs.luxonis.com/software-v3/depthai/examples/record_replay/holistic_record/
+
 #include <atomic>
 #include <chrono>
 #include <csignal>

@@ -25,3 +25,6 @@ target_link_libraries(orb_video PRIVATE ${OpenCV_LIBS})
 add_executable(record utils/record/record.cpp)
 target_link_libraries(record PRIVATE depthai::core ${OpenCV_LIBS})
 target_compile_definitions(record PRIVATE PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
+
+add_executable(replay utils/record/replay.cpp)
+target_link_libraries(replay PRIVATE depthai::core ${OpenCV_LIBS})
