@@ -11,9 +11,6 @@ class SLAM{
         // Constructor
         SLAM();
 
-        // Initalize luxonis nodes
-        void init();
-
         // Run loop
         void run();
 
@@ -26,6 +23,11 @@ class SLAM{
         std::shared_ptr<dai::MessageQueue> mono_left_queue;
         std::shared_ptr<dai::MessageQueue> mono_right_queue;
         std::shared_ptr<dai::MessageQueue> depth_queue;
+        std::shared_ptr<dai::MessageQueue> imu_queue;
 
 
-} // class SLAM
+        // Initalize luxonis nodes
+        void init();
+
+
+}; // class SLAM

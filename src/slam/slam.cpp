@@ -20,8 +20,8 @@ void SLAM::init() {
     device = std::make_shared<dai::Device>();
     pipeline = std::make_unique<dai::Pipeline>(device);
 
-    // Create camera nodes and output queue
-    cam = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_A);
+    // CAMERA (https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/camera/)
+    cam = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_A, type=dai.ImgFrame.Type.NV12, fps=30);
     mono_left = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_B);
     mono_right = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_C);
 
@@ -33,11 +33,18 @@ void SLAM::init() {
     //  - correct for wide lens distrotion
     //  - correct orientation (flip?)
     //  - correct color channel (rgb)
+    cam_out->setNumFramesPools(2);
+
+    // IMU (https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/imu/)
+
+    imu = pipeline.create<dai::node::IMU>();
+    // enable ACCELEROMETER_RAW and GYROSCOPE_RAW at 100 hz rate
+    imu->enableIMUSensor({dai::IMUSensor::ACCELEROMETER_RAW, dai::IMUSensor::GYROSCOPE_RAW}, 100);
+    imu->setBatchReportThreshold(1);
 
 
-    // Stereo depth from the two monos
-    // https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/stereo_depth
-    auto stereo = pipeline->create<dai::node::StereoDepth>()->build(
+    // STEREO DEPTH (https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/stereo_depth)
+    stereo = pipeline->create<dai::node::StereoDepth>()->build(
         *monoLeftOut, *monoRightOut, dai::node::StereoDepth::PresetMode::ROBOTICS);
     
     // apply some configurations for stereo to impove accuracy
@@ -46,20 +53,37 @@ void SLAM::init() {
     stereo->setDepthAlign(dai::CameraBoardSocket::CAM_A);  // depth pixels line up with rgb
 
 
-
     // Define output queues to read from
     cam_queue = cam_out->createOutputQueue();
     mono_left_queue  = mono_left_out->createOutputQueue();
     mono_right_queue = mono_right_out->createOutputQueue();
     depth_queue = stereo->depth.createOutputQueue();
+    imu_queue = imu->createOutputQueue();
 
 }
 
 
 /* Run loop */
 void SLAM::run() {
-    // read from node
-    // feature extract and mathc
-    // depth
-    // plot
+
+    // Initalize and start pipeline
+    SLAM::init();
+    pipeline->start();
+
+    while(pipeline->isRunning()){
+        // Read info from the node
+        auto cam = cam_queue->get<dai::ImgFrame>();
+        auto depth = depth_queue->get<dai::ImgFrame>();
+        auto imu = 
+
+
+
+        // Exit condition
+        // also want to exit if we detect loop closure
+        if(cv::waitKey(1) == 'q') {
+            break;
+    }
+
+    pipeline->stop();
+    pipeline->wait();
 }
