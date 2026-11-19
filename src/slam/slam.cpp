@@ -9,6 +9,7 @@
 #include "depthai/depthai.hpp"
 
 #include "slam.hpp"
+#include "feature_matching_and_detection.h"
 
 SLAM::SLAM() {}
 
@@ -33,7 +34,7 @@ void SLAM::init() {
     //  - correct for wide lens distrotion
     //  - correct orientation (flip?)
     //  - correct color channel (rgb)
-    cam_out->setNumFramesPools(2);
+    // cam_out->setNumFramesPools(2);
 
     // IMU (https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/imu/)
 
@@ -54,11 +55,11 @@ void SLAM::init() {
 
 
     // Define output queues to read from
-    cam_queue = cam_out->createOutputQueue();
-    mono_left_queue  = mono_left_out->createOutputQueue();
-    mono_right_queue = mono_right_out->createOutputQueue();
-    depth_queue = stereo->depth.createOutputQueue();
-    imu_queue = imu->createOutputQueue();
+    cam_queue = cam_out->createOutputQueue(2, false);
+    mono_left_queue  = mono_left_out->createOutputQueue(2, false);
+    mono_right_queue = mono_right_out->createOutputQueue(2, false);
+    depth_queue = stereo->depth.createOutputQueue(2, false);
+    imu_queue = imu->createOutputQueue(10, false);
 
 }
 
@@ -71,10 +72,25 @@ void SLAM::run() {
     pipeline->start();
 
     while(pipeline->isRunning()){
+
         // Read info from the node
         auto cam = cam_queue->get<dai::ImgFrame>();
         auto depth = depth_queue->get<dai::ImgFrame>();
-        auto imu = 
+
+        // actually this is wrong -- there is a lto more to this
+        // will make own node and do calculations separately to convert
+        // imu accelorometer and gyroscope data to transformatino
+        auto imu = imu_queue->get<dai::IMU>():
+
+        // CALL FEATURE DETCTION 
+
+        if (frame_points.size() > 1){
+            // FEATURE MATCHING
+            feature_detection_and_matching_nodes();
+        }
+
+        // PLOT IN VISUALIZER
+
 
 
 

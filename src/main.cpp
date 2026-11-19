@@ -11,7 +11,6 @@ int main(){
 
     try{
         SLAM slam;
-        slam.init();
         slam.run();
     } catch (const std::exception& e) {
         std::cout << "Caught error: " << e.what() << '\n';
