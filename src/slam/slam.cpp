@@ -13,9 +13,7 @@
 #include "features/feature_matching_and_detection.h"
 
 SLAM::SLAM() {}
-o straight from quaternion to rotation matrix (you’re already doing that in imu2transform). Euler angles add nothing here and bring in gimbal lock and ±180° wrap-around.
 
-2. You need the change in rotation between frames, not the absolute orientation. The rotation vector gives the orientation of the 
 
 /* Initialize nodes from camera */
 void SLAM::init() {

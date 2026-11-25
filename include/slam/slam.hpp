@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "depthai/depthai.hpp"
+#include <Eigen/Dense>
 
 #include "imu/imu.hpp"
 
@@ -42,6 +43,13 @@ class SLAM{
 
         // Last IMU::kMaxReadings imu readings
         std::deque<IMU::ImuData> imu_buffer;
+
+        // History of transformations
+        std::vector<Eigen::Matrix4d> = pose_history;
+
+        // Current position
+        Eigen::Matrix4d = current_pose;
+
 
 
         // Initalize luxonis nodes

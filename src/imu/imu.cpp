@@ -7,22 +7,6 @@
 
 namespace IMU{
 
-    // std::tuple<double, double, double> quaternionToEulerXYZ(float i, float j, float k, float real) {
-    //     const double sinrCosp = 2.0 * (real * i + j * k);
-    //     const double cosrCosp = 1.0 - 2.0 * (i * i + j * j);
-    //     const double x = std::atan2(sinrCosp, cosrCosp) * 180.0 / kPi;
-
-    //     double sinp = 2.0 * (real * j - k * i);
-    //     sinp = std::clamp(sinp, -1.0, 1.0);
-    //     const double y = std::asin(sinp) * 180.0 / kPi;
-
-    //     const double sinyCosp = 2.0 * (real * k + i * j);
-    //     const double cosyCosp = 1.0 - 2.0 * (j * j + k * k);
-    //     const double z = std::atan2(sinyCosp, cosyCosp) * 180.0 / kPi;
-
-    //     return {x, y, z};
-    // }
-
     void pushImuData(const std::shared_ptr<dai::IMUData>& imu_data, std::deque<ImuData>& buffer){
 
         // Check empty imu data
@@ -89,3 +73,21 @@ namespace IMU{
     }
 
 } // namespace IMU
+
+
+
+    // std::tuple<double, double, double> quaternionToEulerXYZ(float i, float j, float k, float real) {
+    //     const double sinrCosp = 2.0 * (real * i + j * k);
+    //     const double cosrCosp = 1.0 - 2.0 * (i * i + j * j);
+    //     const double x = std::atan2(sinrCosp, cosrCosp) * 180.0 / kPi;
+
+    //     double sinp = 2.0 * (real * j - k * i);
+    //     sinp = std::clamp(sinp, -1.0, 1.0);
+    //     const double y = std::asin(sinp) * 180.0 / kPi;
+
+    //     const double sinyCosp = 2.0 * (real * k + i * j);
+    //     const double cosyCosp = 1.0 - 2.0 * (j * j + k * k);
+    //     const double z = std::atan2(sinyCosp, cosyCosp) * 180.0 / kPi;
+
+    //     return {x, y, z};
+    // }
