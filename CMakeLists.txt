@@ -18,7 +18,7 @@ target_link_libraries(camera_raw PRIVATE depthai::core ${OpenCV_LIBS})
 # ORB feature matching
 find_package(OpenCV REQUIRED)
 
-add_executable(orb_video src/orb_video.cpp)
+add_executable(orb_video src/features/orb_video.cpp)
 target_compile_features(orb_video PRIVATE cxx_std_17)
 target_include_directories(orb_video PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(orb_video PRIVATE ${OpenCV_LIBS})
@@ -31,6 +31,8 @@ target_link_libraries(replay PRIVATE depthai::core ${OpenCV_LIBS})
 
 
 # SLAM/MAiN
-add_executable(slam src/main.cpp src/slam/slam.cpp)
-target_include_directories(slam PRIVATE include)
-target_link_libraries(slam PRIVATE depthai::core ${OpenCV_LIBS})
+find_package(Eigen3 REQUIRED)
+
+add_executable(slam src/main.cpp src/slam/slam.cpp src/imu/imu.cpp)
+target_include_directories(slam PRIVATE include src)
+target_link_libraries(slam PRIVATE depthai::core ${OpenCV_LIBS} Eigen3::Eigen)

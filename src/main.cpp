@@ -2,7 +2,7 @@
 #include <iostream>
 #include <print>
 
-#include "slam.hpp"
+#include "slam/slam.hpp"
 
 
 
@@ -19,6 +19,6 @@ int main(){
 
     std::println("Finished executing visual-interial SLAM.");
 
-    reutrn 0;
+    return 0;
 
 }

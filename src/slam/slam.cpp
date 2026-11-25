@@ -8,11 +8,14 @@
 
 #include "depthai/depthai.hpp"
 
-#include "slam.hpp"
-#include "feature_matching_and_detection.h"
+#include "slam/slam.hpp"
+#include "imu/imu.hpp"
+#include "features/feature_matching_and_detection.h"
 
 SLAM::SLAM() {}
+o straight from quaternion to rotation matrix (you’re already doing that in imu2transform). Euler angles add nothing here and bring in gimbal lock and ±180° wrap-around.
 
+2. You need the change in rotation between frames, not the absolute orientation. The rotation vector gives the orientation of the 
 
 /* Initialize nodes from camera */
 void SLAM::init() {
@@ -22,11 +25,11 @@ void SLAM::init() {
     pipeline = std::make_unique<dai::Pipeline>(device);
 
     // CAMERA (https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/camera/)
-    cam = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_A, type=dai.ImgFrame.Type.NV12, fps=30);
+    cam = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_A);
     mono_left = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_B);
     mono_right = pipeline->create<dai::node::Camera>()->build(dai::CameraBoardSocket::CAM_C);
 
-    cam_out =  cam->requestOutput({640, 480}, dai::ImgFrame::Type::NV12, dai::ImgResizeMode::CROP, 2);
+    cam_out =  cam->requestOutput({640, 480}, dai::ImgFrame::Type::NV12, dai::ImgResizeMode::CROP, 30);
     mono_left_out = mono_left->requestOutput({640, 480});
     mono_right_out = mono_right->requestOutput({640, 480});
 
@@ -38,15 +41,15 @@ void SLAM::init() {
 
     // IMU (https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/imu/)
 
-    imu = pipeline.create<dai::node::IMU>();
+    imu = pipeline->create<dai::node::IMU>();
     // enable ACCELEROMETER_RAW and GYROSCOPE_RAW at 100 hz rate
-    imu->enableIMUSensor({dai::IMUSensor::ACCELEROMETER_RAW, dai::IMUSensor::GYROSCOPE_RAW}, 100);
+    imu->enableIMUSensor({dai::IMUSensor::ROTATION_VECTOR, dai::IMUSensor::ACCELEROMETER_CALIBRATED, dai::IMUSensor::GYROSCOPE_CALIBRATED}, 100);
     imu->setBatchReportThreshold(1);
 
 
     // STEREO DEPTH (https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/stereo_depth)
     stereo = pipeline->create<dai::node::StereoDepth>()->build(
-        *monoLeftOut, *monoRightOut, dai::node::StereoDepth::PresetMode::ROBOTICS);
+        *mono_left_out, *mono_right_out, dai::node::StereoDepth::PresetMode::ROBOTICS);
     
     // apply some configurations for stereo to impove accuracy
     stereo->setLeftRightCheck(true);    // Better handling for occlusions:
@@ -59,7 +62,7 @@ void SLAM::init() {
     mono_left_queue  = mono_left_out->createOutputQueue(2, false);
     mono_right_queue = mono_right_out->createOutputQueue(2, false);
     depth_queue = stereo->depth.createOutputQueue(2, false);
-    imu_queue = imu->createOutputQueue(10, false);
+    imu_queue = imu->out.createOutputQueue(10, false);
 
 }
 
@@ -74,20 +77,23 @@ void SLAM::run() {
     while(pipeline->isRunning()){
 
         // Read info from the node
-        auto cam = cam_queue->get<dai::ImgFrame>();
-        auto depth = depth_queue->get<dai::ImgFrame>();
+        auto cam_frame = cam_queue->get<dai::ImgFrame>();
+        auto depth_frame = depth_queue->get<dai::ImgFrame>();
 
-        // actually this is wrong -- there is a lto more to this
-        // will make own node and do calculations separately to convert
-        // imu accelorometer and gyroscope data to transformatino
-        auto imu = imu_queue->get<dai::IMU>():
+        // Get transformation via imu
+        auto imu_data = imu_queue->get<dai::IMUData>();
+        IMU::pushImuData(imu_data, imu_buffer);
+        if(!imu_buffer.empty()) {
+            IMU::Transform trans = IMU::imu2transform(imu_buffer.back());
+        }
 
         // CALL FEATURE DETCTION 
 
-        if (frame_points.size() > 1){
-            // FEATURE MATCHING
-            feature_detection_and_matching_nodes();
-        }
+        // TODO: frame_points doesn't exist yet
+        // if (frame_points.size() > 1){
+        //     // FEATURE MATCHING
+        //     feature_detection_and_matching_nodes();
+        // }
 
         // PLOT IN VISUALIZER
 
@@ -98,6 +104,7 @@ void SLAM::run() {
         // also want to exit if we detect loop closure
         if(cv::waitKey(1) == 'q') {
             break;
+        }
     }
 
     pipeline->stop();
